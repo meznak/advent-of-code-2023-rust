@@ -33,6 +33,7 @@ fn main() -> Result<(), RunError> {
 
         let result = match &*parsed_args.day {
             "day01" => {puzzles::day01::main(part, &data)?},
+            "day02" => {puzzles::day02::main(part, &data)?},
             _ => {return Err(RunError::NotImplemented(parsed_args.day));}
         };
 
