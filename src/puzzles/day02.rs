@@ -1,5 +1,3 @@
-use std::f32::INFINITY;
-
 use crate::RunError;
 use regex::Regex;
 

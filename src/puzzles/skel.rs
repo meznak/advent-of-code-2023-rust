@@ -35,34 +35,28 @@ fn part2(values: Vec<String>) -> Result<usize, RunError> {
 mod tests {
     use super::*;
 
-    static SAMPLE_INPUT: &str = "";
+    fn sample_input() -> String {
+        "".to_string()
+    }
 
-    static SAMPLE_DATA: &[&str] = &[
+    fn sample_data() -> String {
+        "".to_string()
+    }
 
-        ];
-
-    static SAMPLE_DATA_2: &[&str] = &[
-
-        ];
-
-    static SAMPLE_GOALS: [usize; 2] = [0, 0];
+    const SAMPLE_GOALS: [usize; 2] = [0, 0];
 
     #[test]
     fn test_parse() {
-        assert_eq!(parse_data(&SAMPLE_INPUT.to_string()).unwrap(), SAMPLE_DATA);
+        assert_eq!(parse_data(&sample_input()).unwrap(), sample_data());
     }
 
     #[test]
     fn test_part1() {
-        let mut sample_data: Vec<String> = vec![];
-        SAMPLE_DATA.iter().for_each(|line| sample_data.push((*line).to_string()));
-        assert_eq!(part1(sample_data).unwrap(), SAMPLE_GOALS[0]);
+        assert_eq!(part1(sample_data()).unwrap(), SAMPLE_GOALS[0]);
     }
 
     #[test]
     fn test_part2() {
-        let mut sample_data: Vec<String> = vec![];
-        SAMPLE_DATA.iter().for_each(|line| sample_data.push((*line).to_string()));
-        assert_eq!(part2(sample_data).unwrap(), SAMPLE_GOALS[1]);
+        assert_eq!(part2(sample_data()).unwrap(), SAMPLE_GOALS[1]);
     }
 }
