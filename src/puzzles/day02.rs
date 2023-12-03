@@ -1,4 +1,5 @@
 use crate::RunError;
+use regex::Regex;
 
 #[derive(Debug, PartialEq)]
 struct Game {
@@ -17,16 +18,74 @@ pub fn main(part: u8, data: &String) -> Result<usize, RunError> {
 }
 
 fn parse_data(data: &String) -> Result<Vec<Game>, RunError> {
-    let lines: Vec<&str> = data[..].split("\n:;").collect();
+    let lines: Vec<&str> = data[..].split("\n").collect();
 
-    todo!();
+    let re_game = Regex::new(r"(?P<game>\d+)$").unwrap();
+    // let re_cubes = Regex::new(r"(?P<red>\d+) r|(?P<grn>\d+) g|(?P<blu>\d+) b").unwrap();
+    let re_red = Regex::new(r"(\d+) r").unwrap();
+    let re_grn = Regex::new(r"(\d+) g").unwrap();
+    let re_blu = Regex::new(r"(\d+) b").unwrap();
+
+    let mut games: Vec<Game> = vec![];
+
+    for line in lines {
+        let split: Vec<&str> = line.split(&[':', ';'][..]).collect();
+
+        let Some(game_id) = re_game
+            .captures(split[0])
+        else { return Err(RunError::Regex(line.to_string())); };
+
+        let mut game = Game { id: (&game_id[1]).parse::<usize>()?, cubes: Vec::new() };
+
+        for group_num in 1..split.len() {
+            match split.get(group_num) {
+                Some(group) => {
+                    let red: usize = re_red.captures(group).map_or("0", |m| m.get(1).unwrap().as_str()).parse().unwrap();
+                    let grn: usize = re_grn.captures(group).map_or("0", |m| m.get(1).unwrap().as_str()).parse().unwrap();
+                    let blu: usize = re_blu.captures(group).map_or("0", |m| m.get(1).unwrap().as_str()).parse().unwrap();
+                    game.cubes.push([red, grn, blu]);
+                },
+                None => { return Err(RunError::Regex("line: {line}\ngroup_num: {group_num}".to_string())); }
+            }
+        };
+
+        games.push(game);
+    }
+
+    Ok(games)
 }
 
 fn part1(values: Vec<Game>) -> Result<usize, RunError> {
     // Goal: Sum the IDs of possible games,
     // given 12 red, 13 green, 14 blue cubes.
 
-    todo!();
+    let mut id_sum = 0;
+    let limits: [usize; 3] = [12, 13, 14];
+
+    for game in values {
+        let mut max: [usize; 3] = [0, 0, 0];
+        let mut over_limit = false;
+        for col in 0..3 {
+            for group in &game.cubes {
+                if group[col] > max[col] {
+                    max[col] = group[col];
+                }
+            }
+        }
+
+        for col in 0..3 {
+            if max[col] > limits[col] {
+                over_limit = true;
+                continue;
+            }
+        }
+
+        if !over_limit {
+            id_sum += game.id;
+        }
+    }
+
+    Ok(id_sum)
 }
 
 fn part2(values: Vec<Game>) -> Result<usize, RunError> {
@@ -50,10 +109,10 @@ mod tests {
     fn sample_data() -> Vec<Game> {
         vec![
             Game{ id: 1, cubes: [[4, 0, 3], [1, 2, 6], [0, 2, 0]].to_vec()},
-            // Game{ id: 2, cubes: [[0, 2, 1], [1, 3, 4], [0, 1, 1]]},
-            // Game{ id: 3, cubes: [[20, 8, 6], [4, 13, 5], [1, 5, 0]]},
-            // Game{ id: 4, cubes: [[3, 1, 6], [6, 3, 0], [14, 3, 15]]},
-            // Game{ id: 5, cubes: [[6, 3, 0], [1, 2, 2]]},
+            Game{ id: 2, cubes: [[0, 2, 1], [1, 3, 4], [0, 1, 1]].to_vec()},
+            Game{ id: 3, cubes: [[20, 8, 6], [4, 13, 5], [1, 5, 0]].to_vec()},
+            Game{ id: 4, cubes: [[3, 1, 6], [6, 3, 0], [14, 3, 15]].to_vec()},
+            Game{ id: 5, cubes: [[6, 3, 1], [1, 2, 2]].to_vec()},
         ]
     }
 
@@ -64,17 +123,13 @@ mod tests {
         assert_eq!(parse_data(&sample_input()).unwrap(), sample_data());
     }
 
-    // #[test]
-    // fn test_part1() {
-    //     let mut sample_data: Vec<Game> = vec![];
-    //     SAMPLE_DATA.iter().for_each(|line| sample_data.push(*line));
-    //     assert_eq!(part1(sample_data).unwrap(), SAMPLE_GOALS[0]);
-    // }
+    #[test]
+    fn test_part1() {
+        assert_eq!(part1(sample_data()).unwrap(), SAMPLE_GOALS[0]);
+    }
 
-    // #[test]
-    // fn test_part2() {
-    //     let mut sample_data: Vec<Game> = vec![];
-    //     SAMPLE_DATA.iter().for_each(|line| sample_data.push(*line));
-    //     assert_eq!(part2(sample_data).unwrap(), SAMPLE_GOALS[1]);
-    // }
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(sample_data()).unwrap(), SAMPLE_GOALS[1]);
+    }
 }
