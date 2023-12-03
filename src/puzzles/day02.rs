@@ -1,3 +1,5 @@
+use std::f32::INFINITY;
+
 use crate::RunError;
 use regex::Regex;
 
@@ -89,9 +91,24 @@ fn part1(values: Vec<Game>) -> Result<usize, RunError> {
 }
 
 fn part2(values: Vec<Game>) -> Result<usize, RunError> {
-    // Goal:
+    // Goal: Find the minimum number of each color cube
+    // and submit their product.
 
-    todo!();
+    let mut product_sum = 0;
+
+    for game in values {
+        let mut min: [usize; 3] = [0, 0, 0];
+        for col in 0..3 {
+            for group in &game.cubes {
+                if group[col] > min[col] {
+                    min[col] = group[col];
+                }
+            }
+        }
+        product_sum += min[0] * min[1] * min[2];
+    }
+
+    Ok(product_sum)
 }
 
 #[cfg(test)]
@@ -116,7 +133,7 @@ mod tests {
         ]
     }
 
-    const SAMPLE_GOALS: [usize; 2] = [8, 0];
+    const SAMPLE_GOALS: [usize; 2] = [8, 2286];
 
     #[test]
     fn test_parse() {
