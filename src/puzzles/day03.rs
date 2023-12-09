@@ -19,7 +19,7 @@ pub fn main(part: u8, data: &String) -> Result<usize, RunError> {
 
     match part {
         1 => part1(&mut parsed_data),
-        // 2 => part2(&mut parsed_data),
+        2 => part2(&mut parsed_data),
         _ => Err(RunError::BadPartNum)
     }
 }
@@ -88,53 +88,53 @@ fn part1(values: &mut (Vec<PartNumber>, Vec<Symbol>)) -> Result<usize, RunError>
     // Goal: Determine valid part numbers (adjacent to a symbol)
     // and return their sum.
 
-    // For each number
-    // Check before
-    // Check above and below each digit
-    // Check after
-
-    // If adjacent, set 'valid'
-
-    for mut number in &values.0 {
-        check_is_valid(number, &values.1);
-
+    for number in &mut values.0 {
+        number.is_valid = check_is_valid(number, &values.1);
     }
 
-    Ok(0)
+    let mut sum = 0;
+
+    for number in &values.0 {
+        if number.is_valid {
+            sum += number.value;
+        }
+    }
+
+    Ok(sum)
 }
 
-// fn part2(values: &mut (Vec<PartNumber>, Vec<Symbol>)) -> Result<usize, RunError> {
-//     // Goal:
+fn part2(values: &mut (Vec<PartNumber>, Vec<Symbol>)) -> Result<usize, RunError> {
+    // Goal:
 
-//     todo!();
-// }
+    todo!();
+}
 
-fn check_is_valid(number: &mut PartNumber, symbols: &Vec<Symbol>) {
+fn check_is_valid(number: &PartNumber, symbols: &Vec<Symbol>) -> bool {
     let mut cursor = number.start;
     let mut height = 2;
-    let mut length = number.length;
+    let mut length = number.length + 1;
 
     // before
-    if cursor[0] > 0 {
-        cursor[0] -= 1;
+    if cursor[1] > 0 {
+        cursor[1] -= 1;
         length += 1;
     }
 
     // above
-    if cursor[1] > 0 {
-        cursor[1] -= 1;
+    if cursor[0] > 0 {
+        cursor[0] -= 1;
         height += 1;
     }
-     for y in cursor[1] .. cursor[1] + height {
-        for x in cursor[0] .. cursor[0] + length {
+     for y in cursor[0] .. cursor[0] + height {
+        for x in cursor[1] .. cursor[1] + length {
             for symbol in symbols {
-                if [x, y] == symbol.position {
-                    number.is_valid = true;
-                    return;
+                if [y, x] == symbol.position {
+                    return true;
                 }
             }
         }
     }
+    false
 }
 
 #[cfg(test)]
@@ -185,11 +185,11 @@ mod tests {
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(sample_data()).unwrap(), SAMPLE_GOALS[0]);
+        assert_eq!(part1(&mut sample_data()).unwrap(), SAMPLE_GOALS[0]);
     }
 
-    // #[test]
-    // fn test_part2() {
-    //     assert_eq!(part2(sample_data()).unwrap(), SAMPLE_GOALS[1]);
-    // }
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(&mut sample_data()).unwrap(), SAMPLE_GOALS[1]);
+    }
 }
