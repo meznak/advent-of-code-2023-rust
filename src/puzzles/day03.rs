@@ -8,10 +8,12 @@ struct PartNumber {
     is_valid: bool
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 struct Symbol {
     position: [usize; 2],
-    character: char
+    character: char,
+    adjacents: usize,
+    ratio: usize
 }
 
 pub fn main(part: u8, data: &String) -> Result<usize, RunError> {
@@ -74,7 +76,7 @@ fn parse_data(data: &String) -> Result<(Vec<PartNumber>, Vec<Symbol>), RunError>
                 else {
                     let coords = [cursor / line_length,
                                               cursor % line_length];
-                    symbols.push(Symbol { position: coords, character: character });
+                    symbols.push(Symbol { position: coords, character: character, adjacents: 0, ratio: 1 });
                 }
             }
         }
@@ -104,9 +106,30 @@ fn part1(values: &mut (Vec<PartNumber>, Vec<Symbol>)) -> Result<usize, RunError>
 }
 
 fn part2(values: &mut (Vec<PartNumber>, Vec<Symbol>)) -> Result<usize, RunError> {
-    // Goal:
+    // Goal: Find gears (* with at least two adjacent numbers)
+    // Gear ratio is the product of all adjacent numbers
+    // Return the sum of gear ratios
 
-    todo!();
+    let mut possible_gears: Vec<Symbol> = vec![];
+
+    for symbol in &values.1 {
+        if symbol.character == '*' {
+            possible_gears.push(symbol.clone());
+        }
+    }
+
+    for number in &values.0 {
+        calculate_ratios(number, &mut possible_gears)
+    }
+
+    let mut sum = 0;
+    for gear in possible_gears {
+        if gear.adjacents > 1 {
+            sum += gear.ratio;
+        }
+    }
+
+    return Ok(sum);
 }
 
 fn check_is_valid(number: &PartNumber, symbols: &Vec<Symbol>) -> bool {
@@ -135,6 +158,34 @@ fn check_is_valid(number: &PartNumber, symbols: &Vec<Symbol>) -> bool {
         }
     }
     false
+}
+
+fn calculate_ratios(number: &PartNumber, symbols: &mut Vec<Symbol>) {
+    let mut cursor = number.start;
+    let mut height = 2;
+    let mut length = number.length + 1;
+
+    // before
+    if cursor[1] > 0 {
+        cursor[1] -= 1;
+        length += 1;
+    }
+
+    // above
+    if cursor[0] > 0 {
+        cursor[0] -= 1;
+        height += 1;
+    }
+     for y in cursor[0] .. cursor[0] + height {
+        for x in cursor[1] .. cursor[1] + length {
+            for symbol in &mut *symbols {
+                if [y, x] == symbol.position {
+                    symbol.adjacents += 1;
+                    symbol.ratio *= number.value;
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -167,12 +218,12 @@ mod tests {
             PartNumber { start: [9, 5], length: 3, value: 598, is_valid: false }
         ],
         vec![
-            Symbol { position: [1, 3], character: '*' },
-            Symbol { position: [3, 6], character: '#' },
-            Symbol { position: [4, 3], character: '*' },
-            Symbol { position: [5, 5], character: '+' },
-            Symbol { position: [8, 3], character: '$' },
-            Symbol { position: [8, 5], character: '*' }
+            Symbol { position: [1, 3], character: '*', adjacents: 0, ratio: 1 },
+            Symbol { position: [3, 6], character: '#', adjacents: 0, ratio: 1 },
+            Symbol { position: [4, 3], character: '*', adjacents: 0, ratio: 1 },
+            Symbol { position: [5, 5], character: '+', adjacents: 0, ratio: 1 },
+            Symbol { position: [8, 3], character: '$', adjacents: 0, ratio: 1 },
+            Symbol { position: [8, 5], character: '*', adjacents: 0, ratio: 1 }
         ])
     }
 
