@@ -8,55 +8,62 @@ struct PartNumber {
     is_valid: bool
 }
 
+#[derive(Debug, PartialEq)]
+struct Symbol {
+    position: [usize; 2],
+    character: char
+}
+
 pub fn main(part: u8, data: &String) -> Result<usize, RunError> {
-    let parsed_data = parse_data(data)?;
+    let mut parsed_data = parse_data(data)?;
 
     match part {
-        1 => part1(parsed_data),
-        2 => part2(parsed_data),
+        1 => part1(&mut parsed_data),
+        // 2 => part2(&mut parsed_data),
         _ => Err(RunError::BadPartNum)
     }
 }
 
-fn parse_data(data: &String) -> Result<(Vec<PartNumber>, Vec<[usize; 2]>), RunError> {
-    // let bytes = data.as_bytes();
+fn parse_data(data: &String) -> Result<(Vec<PartNumber>, Vec<Symbol>), RunError> {
     let mut part_numbers: Vec<PartNumber> = vec![];
-    let mut symbols: Vec<[usize; 2]> = vec![];
+    let mut symbols: Vec<Symbol> = vec![];
 
-    let (mut x, mut y) = (0, 0);
     let line_length = data.find('\n').unwrap();
-    // let str_length = data.len();
-    let mut cursor = -1;
+    let mut cursor = 0;
+    let mut char_buffer: Option<char> = None;
 
     let mut characters = data.chars();
+    let mut character_opt: Option<char>;
 
     loop {
-        match characters.next() {
+        character_opt = char_buffer.or_else(|| {characters.next()});
+        char_buffer = None;
+
+        match character_opt {
             None => { break; },
+            Some(character @ ('.' | '\n' | 'a' | 'b')) => {
+                if character == '\n' { cursor -= 1; };
+            },
             Some(character) => {
-                cursor += 1;
                 if character.is_numeric() {
                     let mut num_str = character.to_string();
-                    // let start = cursor;
                     let mut length = 1;
-                    let mut value = 0;
-                    let coords = [cursor % line_length, cursor / line_length];
-
-                    // let mut cursor = index + 1;
-                    // let mut finished = false;
+                    let value;
+                    let coords = [cursor as usize / line_length,
+                                              cursor as usize  % line_length];
 
                     loop {
                         let next_char = characters.next();
-                        cursor += 1;
 
                         match next_char {
                             Some(c @ ('0' ..= '9')) => {
                                 num_str.push_str(&c.to_string());
+                                cursor += 1;
                                 length += 1;
                             },
                             _ => {
                                 value = num_str.parse().unwrap();
-                                // finished = true;
+                                char_buffer = next_char;
                                 break;
                             },
                         }
@@ -64,24 +71,70 @@ fn parse_data(data: &String) -> Result<(Vec<PartNumber>, Vec<[usize; 2]>), RunEr
 
                     part_numbers.push(PartNumber { start: coords, length: length, value: value, is_valid: false });
                 }
+                else {
+                    let coords = [cursor / line_length,
+                                              cursor % line_length];
+                    symbols.push(Symbol { position: coords, character: character });
+                }
             }
         }
+        cursor += 1;
     }
 
     return Ok((part_numbers, symbols));
 }
 
-fn part1(values: (Vec<PartNumber>, Vec<[usize; 2]>)) -> Result<usize, RunError> {
+fn part1(values: &mut (Vec<PartNumber>, Vec<Symbol>)) -> Result<usize, RunError> {
     // Goal: Determine valid part numbers (adjacent to a symbol)
     // and return their sum.
 
-    todo!();
+    // For each number
+    // Check before
+    // Check above and below each digit
+    // Check after
+
+    // If adjacent, set 'valid'
+
+    for mut number in &values.0 {
+        check_is_valid(number, &values.1);
+
+    }
+
+    Ok(0)
 }
 
-fn part2(values: (Vec<PartNumber>, Vec<[usize; 2]>)) -> Result<usize, RunError> {
-    // Goal:
+// fn part2(values: &mut (Vec<PartNumber>, Vec<Symbol>)) -> Result<usize, RunError> {
+//     // Goal:
 
-    todo!();
+//     todo!();
+// }
+
+fn check_is_valid(number: &mut PartNumber, symbols: &Vec<Symbol>) {
+    let mut cursor = number.start;
+    let mut height = 2;
+    let mut length = number.length;
+
+    // before
+    if cursor[0] > 0 {
+        cursor[0] -= 1;
+        length += 1;
+    }
+
+    // above
+    if cursor[1] > 0 {
+        cursor[1] -= 1;
+        height += 1;
+    }
+     for y in cursor[1] .. cursor[1] + height {
+        for x in cursor[0] .. cursor[0] + length {
+            for symbol in symbols {
+                if [x, y] == symbol.position {
+                    number.is_valid = true;
+                    return;
+                }
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -89,37 +142,37 @@ mod tests {
     use super::*;
 
     fn sample_input() -> String {
-        "467..114..
-        ...*......
-        ..35..633.
-        ......#...
-        617*......
-        .....+.58.
-        ..592.....
-        ......755.
-        ...$.*....
-        .664.598..".to_string()
+"467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598..".to_string()
     }
 
-    fn sample_data() -> (Vec<PartNumber>, Vec<[usize; 2]>) {
-        (vec![PartNumber { start: [0,0], length: 3, value: 467, is_valid: true },
-            PartNumber { start: [5, 0], length: 3, value: 114, is_valid: false },
-            PartNumber { start: [2, 2], length: 2, value: 35, is_valid: true },
-            PartNumber { start: [2, 6], length: 3, value: 633, is_valid: true },
-            PartNumber { start: [4, 0], length: 3, value: 617, is_valid: true },
-            PartNumber { start: [5, 8], length: 2, value: 58, is_valid: false },
-            PartNumber { start: [6, 2], length: 3, value: 592, is_valid: true },
-            PartNumber { start: [7, 6], length: 3, value: 755, is_valid: true },
-            PartNumber { start: [9, 1], length: 3, value: 664, is_valid: true },
-            PartNumber { start: [9, 5], length: 3, value: 598, is_valid: true }
+    fn sample_data() -> (Vec<PartNumber>, Vec<Symbol>) {
+        (vec![PartNumber { start: [0,0], length: 3, value: 467, is_valid: false },
+            PartNumber { start: [0, 5], length: 3, value: 114, is_valid: false },
+            PartNumber { start: [2, 2], length: 2, value: 35, is_valid: false },
+            PartNumber { start: [2, 6], length: 3, value: 633, is_valid: false },
+            PartNumber { start: [4, 0], length: 3, value: 617, is_valid: false },
+            PartNumber { start: [5, 7], length: 2, value: 58, is_valid: false },
+            PartNumber { start: [6, 2], length: 3, value: 592, is_valid: false },
+            PartNumber { start: [7, 6], length: 3, value: 755, is_valid: false },
+            PartNumber { start: [9, 1], length: 3, value: 664, is_valid: false },
+            PartNumber { start: [9, 5], length: 3, value: 598, is_valid: false }
         ],
         vec![
-            [1, 3],
-            [3, 6],
-            [4, 3],
-            [5, 5],
-            [8, 3],
-            [8, 5]
+            Symbol { position: [1, 3], character: '*' },
+            Symbol { position: [3, 6], character: '#' },
+            Symbol { position: [4, 3], character: '*' },
+            Symbol { position: [5, 5], character: '+' },
+            Symbol { position: [8, 3], character: '$' },
+            Symbol { position: [8, 5], character: '*' }
         ])
     }
 
@@ -135,8 +188,8 @@ mod tests {
         assert_eq!(part1(sample_data()).unwrap(), SAMPLE_GOALS[0]);
     }
 
-    #[test]
-    fn test_part2() {
-        assert_eq!(part2(sample_data()).unwrap(), SAMPLE_GOALS[1]);
-    }
+    // #[test]
+    // fn test_part2() {
+    //     assert_eq!(part2(sample_data()).unwrap(), SAMPLE_GOALS[1]);
+    // }
 }
