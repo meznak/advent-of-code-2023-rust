@@ -36,11 +36,11 @@ mod tests {
     use super::*;
 
     fn sample_input() -> String {
-        "".to_string()
+"".to_string()
     }
 
     fn sample_data() -> String {
-        "".to_string()
+"".to_string()
     }
 
     const SAMPLE_GOALS: [usize; 2] = [0, 0];
