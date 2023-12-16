@@ -10,34 +10,37 @@ pub fn main(part: u8, data: String) -> Result<usize, RunError> {
     }
 }
 
-fn parse_data(data: String) -> Result<Vec<([usize; 5], [usize; 8])>, RunError> {
+fn parse_data(data: String) -> Result<Vec<(Vec<usize>, Vec<usize>)>, RunError> {
     let lines: Vec<&str> = data[..].split('\n').collect();
-    let cards: Vec<([usize; 5], [usize; 8])> = vec![];
+    let mut cards: Vec<(Vec<usize>, Vec<usize>)> = vec![];
 
     for line in lines {
-        let mut card: ([usize; 5], [usize; 8]);
-        let sections: Vec<&str> = line.split(&[':', '|'][..]).collect();
+        let mut card: (Vec<usize>, Vec<usize>) = (vec![], vec![]);
+        let mut split: Vec<&str> = line.split(' ').collect();
+        split.retain(|&x| x != "");
+        split = split[2..].to_vec();
 
-        for card_half in 1 .. 3 {
-            let mut numbers: Vec<&str> = sections[card_half].split(' ').collect();
-
-            for (index, number) in numbers.enumerate() {
-                card[card_half][index] = number.parse();
+        let mut card_half = &mut card.0;
+        for value in split {
+            if value == "|" {
+                card_half = &mut card.1;
+                continue;
             }
-
-            cards.push(card);
+            card_half.push(value.parse().unwrap());
         }
-    }
+
+        cards.push(card);
+        }
     Ok(cards)
 }
 
-fn part1(values: &Vec<([usize; 5], [usize; 8])>) -> Result<usize, RunError> {
+fn part1(values: &Vec<(Vec<usize>, Vec<usize>)>) -> Result<usize, RunError> {
     // Goal:
 
     todo!();
 }
 
-fn part2(values: &Vec<([usize; 5], [usize; 8])>) -> Result<usize, RunError> {
+fn part2(values: &Vec<(Vec<usize>, Vec<usize>)>) -> Result<usize, RunError> {
     // Goal:
 
     todo!();
@@ -48,7 +51,7 @@ mod tests {
     use super::*;
 
     fn sample_input() -> String {
-        "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
+"Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
 Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
 Card 3:  1 21 53 59 44 | 69 82 63 72 16 21 14  1
 Card 4: 41 92 73 84 69 | 59 84 76 51 58  5 54 83
@@ -57,14 +60,14 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"
             .to_string()
     }
 
-    fn sample_data() -> Vec<([usize; 5], [usize; 8])> {
+    fn sample_data() -> Vec<(Vec<usize>, Vec<usize>)> {
         vec![
-            ([41, 48, 83, 86, 17], [83, 86, 6, 31, 17, 9, 48, 53]),
-            ([13, 32, 20, 16, 61], [61, 30, 68, 82, 17, 32, 24, 19]),
-            ([1, 21, 53, 59, 44], [69, 82, 63, 72, 16, 21, 14, 1]),
-            ([41, 92, 73, 84, 69], [59, 84, 76, 51, 58, 5, 54, 83]),
-            ([87, 83, 26, 28, 32], [88, 30, 70, 12, 93, 22, 82, 36]),
-            ([31, 18, 13, 56, 72], [74, 77, 10, 23, 35, 67, 36, 11]),
+            ([41, 48, 83, 86, 17].to_vec(), [83, 86,  6, 31, 17,  9, 48, 53].to_vec()),
+            ([13, 32, 20, 16, 61].to_vec(), [61, 30, 68, 82, 17, 32, 24, 19].to_vec()),
+            ([ 1, 21, 53, 59, 44].to_vec(), [69, 82, 63, 72, 16, 21, 14,  1].to_vec()),
+            ([41, 92, 73, 84, 69].to_vec(), [59, 84, 76, 51, 58,  5, 54, 83].to_vec()),
+            ([87, 83, 26, 28, 32].to_vec(), [88, 30, 70, 12, 93, 22, 82, 36].to_vec()),
+            ([31, 18, 13, 56, 72].to_vec(), [74, 77, 10, 23, 35, 67, 36, 11].to_vec()),
         ]
     }
 
@@ -72,16 +75,16 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"
 
     #[test]
     fn test_parse() {
-        assert_eq!(parse_data(&sample_input()).unwrap(), sample_data());
+        assert_eq!(parse_data(sample_input()).unwrap(), sample_data());
     }
 
     #[test]
     fn test_part1() {
-        assert_eq!(part1(sample_data()).unwrap(), SAMPLE_GOALS[0]);
+        assert_eq!(part1(&sample_data()).unwrap(), SAMPLE_GOALS[0]);
     }
 
     #[test]
     fn test_part2() {
-        assert_eq!(part2(sample_data()).unwrap(), SAMPLE_GOALS[1]);
+        assert_eq!(part2(&sample_data()).unwrap(), SAMPLE_GOALS[1]);
     }
 }
