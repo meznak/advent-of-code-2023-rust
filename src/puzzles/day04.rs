@@ -1,6 +1,6 @@
 use crate::RunError;
 
-pub fn main(part: u8, data: String) -> Result<usize, RunError> {
+pub fn main(part: u8, data: &String) -> Result<usize, RunError> {
     let parsed_data = parse_data(data)?;
 
     match part {
@@ -10,7 +10,7 @@ pub fn main(part: u8, data: String) -> Result<usize, RunError> {
     }
 }
 
-fn parse_data(data: String) -> Result<Vec<(Vec<usize>, Vec<usize>)>, RunError> {
+fn parse_data(data: &String) -> Result<Vec<(Vec<usize>, Vec<usize>)>, RunError> {
     let lines: Vec<&str> = data[..].split('\n').collect();
     let mut cards: Vec<(Vec<usize>, Vec<usize>)> = vec![];
 
@@ -35,9 +35,28 @@ fn parse_data(data: String) -> Result<Vec<(Vec<usize>, Vec<usize>)>, RunError> {
 }
 
 fn part1(values: &Vec<(Vec<usize>, Vec<usize>)>) -> Result<usize, RunError> {
-    // Goal:
+    // Goal: Submit sum of card scores.
+    // First matching number is worth 1pt, each additional match doubles score
 
-    todo!();
+    let mut total_score = 0;
+    let mut score: usize;
+
+    for card in values {
+        score = 0;
+        for number in &card.1 {
+            if card.0.contains(&number) {
+                if score == 0 {
+                    score = 1;
+                } else {
+                    score *= 2;
+                }
+            }
+        }
+
+        total_score += score;
+    }
+
+    Ok(total_score)
 }
 
 fn part2(values: &Vec<(Vec<usize>, Vec<usize>)>) -> Result<usize, RunError> {
