@@ -34,14 +34,14 @@ fn parse_data(data: &String) -> Result<Vec<(Vec<usize>, Vec<usize>)>, RunError> 
     Ok(cards)
 }
 
-fn part1(values: &Vec<(Vec<usize>, Vec<usize>)>) -> Result<usize, RunError> {
+fn part1(cards: &Vec<(Vec<usize>, Vec<usize>)>) -> Result<usize, RunError> {
     // Goal: Submit sum of card scores.
     // First matching number is worth 1pt, each additional match doubles score
 
     let mut total_score = 0;
     let mut score: usize;
 
-    for card in values {
+    for card in cards {
         score = 0;
         for number in &card.1 {
             if card.0.contains(&number) {
@@ -59,10 +59,27 @@ fn part1(values: &Vec<(Vec<usize>, Vec<usize>)>) -> Result<usize, RunError> {
     Ok(total_score)
 }
 
-fn part2(values: &Vec<(Vec<usize>, Vec<usize>)>) -> Result<usize, RunError> {
-    // Goal:
+fn part2(cards: &Vec<(Vec<usize>, Vec<usize>)>) -> Result<usize, RunError> {
+    // Goal: Matching x numbers awards copies of the following x cards.
+    // How many total cards do you have at the end?
 
-    todo!();
+    let mut copies: Vec<usize> = vec![1; cards.len()];
+    let mut matches: usize;
+
+    for (index, card) in cards.iter().enumerate() {
+        matches = 0;
+        for number in &card.1 {
+            if card.0.contains(&number) {
+                matches += 1;
+            }
+        }
+
+        for offset in index + 1 .. index + matches + 1 {
+            copies[offset] += copies[index];
+        }
+    }
+
+    Ok(copies.iter().sum())
 }
 
 #[cfg(test)]
@@ -90,11 +107,11 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11"
         ]
     }
 
-    const SAMPLE_GOALS: [usize; 2] = [13, 0];
+    const SAMPLE_GOALS: [usize; 2] = [13, 30];
 
     #[test]
     fn test_parse() {
-        assert_eq!(parse_data(sample_input()).unwrap(), sample_data());
+        assert_eq!(parse_data(&sample_input()).unwrap(), sample_data());
     }
 
     #[test]
